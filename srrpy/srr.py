@@ -105,16 +105,12 @@ class Server(Base):
     def run(self):
         self._db.delete(self._queue)
         while True:
-            code_body = self.fetch()
-            logging.info('Server  %s' % code_body)
-            try:
-                import pdb
-                pdb.set_trace()
-                exec(code_body)
-                print("abc")
-            except :
-                logging.debug('Server Error: %s' % code_body)
-                pass
+            #code_body = self.fetch()
+            #logging.info('Server  %s' % code_body)
+            exec(compile(self.fetch(),'','exec'))
+            #print("abc")
+            #logging.debug('Server Error: %s' % code_body)
+            pass
             
             time.sleep(3)
     pass

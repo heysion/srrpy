@@ -14,9 +14,8 @@ def run_main({% for item in list_args -%} {{ item[0] }} = {{ item[1] }} {%- if l
     print("hello")
     pass
 
-if __name__ == "__main__":
-    run_main()
-    time.sleep(10)
+run_main()
+time.sleep(10)
 '''
 
 from jinja2 import Template
