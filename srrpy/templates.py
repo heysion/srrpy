@@ -27,12 +27,12 @@ class TemplatesInterface:
     
 class TemplateFactory(object):
     def __init__(self,templates):
-            if isinstance(templates,TemplatesInterface):
-                self._templates = templates.name
-                self._meta_data = templates.metadata
-            else:
-                raise Exception("you will setting template or base TemplateInterface object")
+        if isinstance(templates,TemplatesInterface):
+            self._templates = templates.name
+            self._meta_data = templates.metadata
+        else:
+            raise Exception("you will setting template or base TemplateInterface object")
 
     def render(self,**kwargs):
-        return Template(meta_data).render(**kwargs)
+        return Template(self._meta_data).render(**kwargs)
 
