@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import redis
-from srr import Server
+from srrpy import Server
 import logging
 import sys
 

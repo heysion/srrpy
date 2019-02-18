@@ -9,11 +9,7 @@ import string
 import sys
 import time
 
-from templates import TemplateFactory
-__all__ = [
-    'Client',
-    'Server',
-]
+from .templates import TemplateFactory
 
 class JSONTransport(object):
     """Cross platform transport."""

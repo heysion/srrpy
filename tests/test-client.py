@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import redis
-from templates import TemplatesInterface
-from srr import Client
+from srrpy import TemplatesInterface
+from srrpy import Client
 import logging
 import sys
 
