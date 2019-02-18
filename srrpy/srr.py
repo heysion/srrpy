@@ -37,7 +37,6 @@ class PickleTransport(object):
             cls._singleton = PickleTransport()
         return cls._singleton
     def dumps(self, obj):
-        # Version 2 works for Python 2.3 and later
         return pickle.dumps(obj, protocol=2)
     def loads(self, obj):
         return pickle.loads(obj)
@@ -100,19 +99,11 @@ class Base(object):
         return self._codec.dumps(message)
 
 class Server(Base):
-    # def __init__(self,db,queue,timeout,codec):
-    #     super().__init__(db,queue,timeout,codec)
     def run(self):
         self._db.delete(self._queue)
         while True:
-            #code_body = self.fetch()
-            #logging.info('Server  %s' % code_body)
             exec(compile(self.fetch(),'','exec'))
-            #print("abc")
-            #logging.debug('Server Error: %s' % code_body)
-            pass
-            
-            time.sleep(3)
+            #time.sleep(3)
     pass
 
 class Client(Base):
@@ -121,8 +112,8 @@ class Client(Base):
         self._templates = TemplateFactory(templates)
         self._callback = "%s:rpc:%s"%(self._queue,Base.random_str())
         
-    def call(self, *args ,**kwargs):
-        send_message = self._templates.render()
+    def call(self ,**kwargs):
+        send_message = self._templates.render(**kwargs)
         logging.debug('Client Request: %s' % send_message)
         request_message = self.request(send_message)
         pass

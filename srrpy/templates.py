@@ -15,7 +15,8 @@ def run_main({% for item in list_args -%} {{ item[0] }} = {{ item[1] }} {%- if l
     pass
 
 run_main()
-time.sleep(10)
+time.sleep(3)
+print("test")
 '''
 
 from jinja2 import Template
@@ -31,9 +32,7 @@ class TemplateFactory(object):
                 self._meta_data = templates.metadata
             else:
                 raise Exception("you will setting template or base TemplateInterface object")
-    def render(self,*args , **kwargs):
-        tm = Template(meta_data)
-        msg = tm.render(import_modules=["sys","os"],list_args={("runargs1",10),("runargs2","'test'")})
-        print(msg)
-        return msg
+
+    def render(self,**kwargs):
+        return Template(meta_data).render(**kwargs)
 
