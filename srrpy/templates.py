@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-meta_data = '''
+__meta_data__ = '''
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -18,21 +18,38 @@ run_main()
 time.sleep(3)
 print("test")
 '''
+'''
+from srrpy import TemplatesInterface
 
+class MyTemplate(TemplatesInterface):
+    name = "mytemplate"
+    metadata = __meta_data__
+'''
+
+from abc import ABCMeta,abstractmethod
 from jinja2 import Template
 
-class TemplatesInterface:
-    name = "test_python3"
-    metadata = meta_data
-    
+class TemplatesInterface(metaclass=ABCMeta):
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+
+    @property
+    @abstractmethod
+    def metadata(self):
+        pass
+
 class TemplateFactory(object):
     def __init__(self,templates):
         if isinstance(templates,TemplatesInterface):
-            self._templates = templates.name
-            self._meta_data = templates.metadata
+            if hasattr(templates,"name") and hasattr(templates,"metadata"):
+                self._tmpl = templates
+            else:
+                raise Exception("you will setting name and metadata on your TemplateInterface class")
         else:
             raise Exception("you will setting template or base TemplateInterface object")
 
     def render(self,**kwargs):
-        return Template(self._meta_data).render(**kwargs)
+        return Template(self._tmpl.metadata).render(**kwargs)
 
