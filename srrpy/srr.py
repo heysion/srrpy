@@ -8,6 +8,7 @@ import random
 import string
 import sys
 import time
+import subprocess
 
 from .templates import TemplateFactory
 
@@ -23,6 +24,24 @@ class JSONTransport(object):
         return json.dumps(obj)
     def loads(self, obj):
         return json.loads(obj.decode())
+
+class ExecRun(object):
+    _singleton = None
+    @classmethod
+    def create(cls):
+        if cls._singleton is None:
+            cls._singleton = ExecRun()
+        return cls._singleton
+
+class PopenRun(object):
+    _singleton = None
+    @classmethod
+    def create(cls):
+        if cls._singleton is None:
+            cls._singleton = PopenRun()
+        return cls._singleton
+
+
 
 class PickleTransport(object):
     """Only works with Python clients and servers."""
@@ -60,34 +79,6 @@ class Base(object):
     def random_str(size=8, chars=string.ascii_uppercase + string.digits):
         return ''.join(random.choice(chars) for x in range(size))
 
-    def request(self,msg):
-        req_dict =  {"call":self._queue,
-                     "callback":self._callback,
-                     "body":msg}
-        
-        rpc_request = self.encode(req_dict)
-        logging.debug('Client RPC: %s' % rpc_request)
-        self._db.rpush(self._queue, rpc_request)
-        pass
-
-    def fetch(self):
-        message_queue,message = self._db.blpop(self._queue)
-        logging.debug('Server Request: %s' % message)
-        request_dict = self.decode(message)
-        self._callback = request_dict["callback"]
-        self._db.rpush(self._callback,self.encode(
-            {"call":self._callback,
-             "callback":None,
-             "body":"ok"}
-        ))
-        return request_dict["body"]
-        
-    def response(self,msg):
-        response_dict = self._codec.decode(msg)
-        logging.debug('Client Response: %s' % response_dict)
-        return response_dict
-        pass
-
     def decode(self, message):
         return self._codec.loads(message)
 
@@ -95,18 +86,48 @@ class Base(object):
         return self._codec.dumps(message)
 
 class Server(Base):
+    def __init__(self,db,queue,timeout,codec,execute="exec",maxjob=4):
+        logging.debug('Server Init: %s' % execute)
+        if execute == "exec":
+            self._execute = ExecRun.create()
+        if execute == "popen":
+            self._execute = PopenRun.create()
+            
+        super().__init__(db,queue,timeout,codec)
+
     def run(self):
         self._db.delete(self._queue)
         while True:
-            exec(compile(self.fetch(),'','exec'))
-            #time.sleep(3)
+            logging.debug('Server Run: %s' % self._queue)
+            if isinstance(self._execute,ExecRun):
+                exec(compile(self.fetch(),'','exec'))
+                self.response("ok")
+            elif isinstance(self._execute,PopenRun):
+                raise Exception("not support!")
+            time.sleep(2)
+
+    def fetch(self):
+        message_queue,message = self._db.blpop(self._queue)
+        logging.debug('Server Request: %s' % message)
+        request_dict = self.decode(message)
+        self._callback = request_dict["callback"]
+        return request_dict["body"]
+
+    def response(self,msgpack):
+        logging.debug('Server Response: %s' % msgpack)
+        self._db.rpush(self._callback,self.encode(
+            {"call":self._callback,
+             "callback":None,
+             "body":msgpack}
+        ))
+
     pass
 
 class Client(Base):
     def __init__(self,db,queue,timeout,codec,templates):
         super().__init__(db,queue,timeout,codec)
         self._templates = TemplateFactory(templates)
-        self._callback = "%s:rpc:%s"%(self._queue,Base.random_str())
+        self._callback = "%s:rpc:%s"%(self._queue,super().random_str())
         
     def call(self ,**kwargs):
         send_message = self._templates.render(**kwargs)
@@ -116,7 +137,14 @@ class Client(Base):
 
     def wait_result(self):
         result = self._db.blpop(self._callback, self._timeout)
-        if result is None:
-            raise Exception("not found result for wait")
+        return result
 
+    def request(self,msg):
+        req_dict =  {"call":self._queue,
+                     "callback":self._callback,
+                     "body":msg}
+        
+        rpc_request = self.encode(req_dict)
+        logging.debug('Client RPC: %s' % rpc_request)
+        self._db.rpush(self._queue, rpc_request)
         pass

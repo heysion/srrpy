@@ -21,6 +21,8 @@ def run_test(a,b):
     print("a + b = %d"%(a+b))
 
 run_test({% for item in list_args -%} {{ item[0] }} = {{ item[1] }} {%- if loop.index == list_args|length -%} {%- else %} , {% endif %} {%- endfor %})
+time.sleep(5)
+print("end")
 '''
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
