@@ -25,24 +25,6 @@ class JSONTransport(object):
     def loads(self, obj):
         return json.loads(obj.decode())
 
-class ExecRun(object):
-    _singleton = None
-    @classmethod
-    def create(cls):
-        if cls._singleton is None:
-            cls._singleton = ExecRun()
-        return cls._singleton
-
-class PopenRun(object):
-    _singleton = None
-    @classmethod
-    def create(cls):
-        if cls._singleton is None:
-            cls._singleton = PopenRun()
-        return cls._singleton
-
-
-
 class PickleTransport(object):
     """Only works with Python clients and servers."""
     _singleton = None
@@ -88,21 +70,18 @@ class Base(object):
 class Server(Base):
     def __init__(self,db,queue,timeout,codec,execute="exec",maxjob=4):
         logging.debug('Server Init: %s' % execute)
-        if execute == "exec":
-            self._execute = ExecRun.create()
-        if execute == "popen":
-            self._execute = PopenRun.create()
-            
         super().__init__(db,queue,timeout,codec)
 
     def run(self):
         self._db.delete(self._queue)
         while True:
             logging.debug('Server Run: %s' % self._queue)
-            if isinstance(self._execute,ExecRun):
-                exec(compile(self.fetch(),'','exec'))
+            if request_dict["execute"] == "exec":
+                exec(compile(request_dict["body"],'','exec'))
                 self.response("ok")
-            elif isinstance(self._execute,PopenRun):
+            elif request_dict["execute"] == "popen":
+                self.response("failed")
+            else:
                 raise Exception("not support!")
             time.sleep(2)
 
@@ -128,9 +107,14 @@ class Client(Base):
         super().__init__(db,queue,timeout,codec)
         self._templates = TemplateFactory(templates)
         self._callback = "%s:rpc:%s"%(self._queue,super().random_str())
+
         
     def call(self ,**kwargs):
         send_message = self._templates.render(**kwargs)
+        if hasattr(self,"execute"):
+            self._execute = execute
+        else:
+            self._execute = "exec"
         logging.debug('Client Request: %s' % send_message)
         request_message = self.request(send_message)
         pass
@@ -142,6 +126,7 @@ class Client(Base):
     def request(self,msg):
         req_dict =  {"call":self._queue,
                      "callback":self._callback,
+                     "execute":self._execute,
                      "body":msg}
         
         rpc_request = self.encode(req_dict)
