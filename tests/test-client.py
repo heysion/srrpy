@@ -36,6 +36,6 @@ db = redis.Redis()
 codec = "json"
 tp = MyTemplate()
 test_client = Client(db,name,5,codec,tp)
-test_client.call(import_modules=["sys","os"],list_args={("a",10),("b",3)})
+test_client.call(import_modules=["sys","os"],list_args={("a",10),("b",3)},execute="exec")
 print(test_client.wait_result())
 
