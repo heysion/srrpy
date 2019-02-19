@@ -76,6 +76,7 @@ class Server(Base):
         self._db.delete(self._queue)
         while True:
             logging.debug('Server Run: %s' % self._queue)
+            request_dict = self.fetch()
             if request_dict["execute"] == "exec":
                 exec(compile(request_dict["body"],'','exec'))
                 self.response("ok")
@@ -90,7 +91,8 @@ class Server(Base):
         logging.debug('Server Request: %s' % message)
         request_dict = self.decode(message)
         self._callback = request_dict["callback"]
-        return request_dict["body"]
+        return request_dict
+        # return request_dict["body"]
 
     def response(self,msgpack):
         logging.debug('Server Response: %s' % msgpack)
