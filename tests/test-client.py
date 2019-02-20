@@ -31,11 +31,11 @@ class MyTemplate(TemplatesInterface):
     name = "mytemplate"
     metadata = __meta__data__
 
-name = "test"
 db = redis.Redis()
-codec = "json"
-tp = MyTemplate()
-test_client = Client(db,name,5,codec,tp)
+
+test_client = Client(db,queue="test",timeout=5,codec="json",templates=MyTemplate())
+
 test_client.call(import_modules=["sys","os"],list_args={("a",10),("b",3)},execute="exec")
+
 print(test_client.wait_result())
 

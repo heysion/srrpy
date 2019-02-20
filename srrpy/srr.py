@@ -68,8 +68,8 @@ class Base(object):
         return self._codec.dumps(message)
 
 class Server(Base):
-    def __init__(self,db,queue,timeout,codec,execute="exec",maxjob=4):
-        logging.debug('Server Init: %s' % execute)
+    def __init__(self,db,queue,timeout,codec,maxjob=4):
+        logging.debug('Server Init: %s' % queue)
         super().__init__(db,queue,timeout,codec)
 
     def run(self):

@@ -8,9 +8,9 @@ import sys
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-name = "test"
 db = redis.Redis()
-codec = "json"
-test_server = Server(db,name,5,codec)
+
+test_server = Server(db,queue="test",timeout=5,codec="json")
+
 test_server.run()
 
