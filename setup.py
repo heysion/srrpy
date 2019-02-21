@@ -5,11 +5,12 @@
 from setuptools import setup
 
 setup(
-   name='srr',
-   version='1.0',
-   description='Simple redis remote rpc',
-   author='Heysion',
-   author_email='heysion@priv.com',
-   packages=['srrpy'],
-   #install_requires=['Jinja2', 'redis'],
+    name='srrpy',
+    version='0.1',
+    description='Simple Remote Run Python/Script',
+    author='Heysion',
+    author_email='heysion@priv.com',
+    url = 'https://github.com/heysion/srrpy',
+    packages=['srrpy'],
+    #install_requires=['Jinja2', 'redis'],
 )
